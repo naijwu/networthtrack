@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Main from './Main';
-import { AppLoading } from 'expo';
+import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
+
+import { LogBox } from 'react-native';
+import _ from 'lodash';
+
+LogBox.ignoreLogs(['Setting a timer']);
+const _console = _.clone(console);
+console.warn = message => {
+  if (message.indexOf('Setting a timer') <= -1) {
+    _console.warn(message);
+  }
+};
 
 
 export default function App() {

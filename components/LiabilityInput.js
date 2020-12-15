@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, Button, TextInput, Modal, List } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 
-const AssetInput = (props) => {
+const LiabilityInput = (props) => {
     
   const[typeVal, updateType] = useState('');
   const[amountVal, updateAmount] = useState(0);
@@ -18,7 +18,7 @@ const AssetInput = (props) => {
           fontSize: 20,
           fontFamily: 'helvetica-neue-bold',
         }}>
-          Modify Assets
+          Modify Liability
         </Text>
         
         <Text style={{
@@ -26,33 +26,33 @@ const AssetInput = (props) => {
           fontSize: 15,
           fontFamily: 'helvetica-neue',
         }}>
-          Asset Class
+          Liability Class
         </Text>
-        <View 
-          style={{
-            color:'black',
-            backgroundColor:'#eee',
-            height:40,
-          }}>
-            <RNPickerSelect
+        <View
+            style={{
+              color:'black',
+              backgroundColor:'#eee',
+              height:40,
+            }}>
+          <RNPickerSelect
               style={{
                 height:40,
               }}
               onValueChange={(value) => updateType(value)}
               items={[
-                  { label: 'Accounts', value: 'accounts' },
-                  { label: 'Investments', value: 'investments' },
-                  { label: 'Properties', value: 'properties' },
-                  { label: 'Cash/Chequing', value: 'Chequing' },
+                  { label: 'Loans', value: 'loans' },
+                  { label: 'Credit Card Debt', value: 'credit-card' },
+                  { label: 'Mortgage', value: 'mortgage' },
+                  { label: 'School Loans', value: 'school' },
                   { label: 'Other', value: 'other' },
               ]} >
-                
-              <Text style={{
-                  padding:10,
-                }}>{typeVal}</Text>
-              </RNPickerSelect>
+            <Text
+              style={{
+                padding:10,
+              }}>{typeVal}</Text>
+          </RNPickerSelect>
         </View>
-
+          
         <Text style={{
           marginTop: 40,
           fontSize: 15,
@@ -72,12 +72,13 @@ const AssetInput = (props) => {
             updateAmount(amountVal)}} value={amountVal} />
       </View>
 
+
       <View style={{
         flexDirection: 'row',
         width: '100%',
         height: 35,
-        paddingHorizontal: 20,
         justifyContent: 'space-between',
+        paddingHorizontal: 20,
         marginTop:40,
       }}>
           <Button 
@@ -85,8 +86,8 @@ const AssetInput = (props) => {
               width: '100%',
               height: '100%',
             }} 
-            title="Add to Assets" 
-            color="green"
+            title="Add to Liabilities" 
+            color="red"
             onPress={() => {
               props.onModify(typeVal, amountVal, true);
               props.closeModal();
@@ -98,8 +99,8 @@ const AssetInput = (props) => {
               width: '100%',
               height: '100%',
             }} 
-            title="Subtract from Assets"
-            color="red"
+            title="Subtract from Liabilities"
+            color="green"
             onPress={()=>{
               props.onModify(typeVal, amountVal, false);
               updateAmount(0);
@@ -110,4 +111,4 @@ const AssetInput = (props) => {
   );
 }
 
-export default AssetInput;
+export default LiabilityInput;

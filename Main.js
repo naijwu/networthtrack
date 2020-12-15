@@ -1,65 +1,107 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { Button, StyleSheet, Text, TextInput, View, FlatList } from 'react-native';
-import TodoItem from './components/TodoItem';
 import AssetInput from './components/AssetInput';
 import {firebase} from './config';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import LiabilityInput from './components/LiabilityInput';
+import BalanceChanges from './components/BalanceChanges';
 
+const db = firebase.database();
 
 const Main = () => {
     const[netWorth, updateNetWorth] = useState(0.00);
-    const[list, updateList] = useState([]); // array of strings
+    const[response, updateResponse] = useState([]); // array of objects from database response
+
     const [assetModal, toggleAssetModal] = useState(false); // initial value of modal is false (which equals close)
+    const [liabilityModal, toggleLiabilityModal] = useState(false); 
+    const [balanceChangesModal, toggleBalanceChangesModal] = useState(false); 
   
     useEffect(() => {
-      const db = firebase.database();
       db.ref('/todolist').on('value', (snapshot) => {
-        let todolist = [];
+        let res = [];
         snapshot.forEach((snap) => {
-          todolist.push({
+          res.push({
             key: snap.key,
             item: snap.val(),
           }); // grabbing the data from the database
         })
   
-        updateList(todolist)
+        updateWorth(res);
       })
-      
+       
     }, []); // only if this [data] is updated, then refresh
+
+
+    const updateWorth = (res) => {
+        updateResponse(res);
+
+        let assets = [];
+        let liabilities = []; // just for the future if we want to do anything more
+        let nw = 0;
+
+        res.forEach((el) => {
+            if(el.item.side == "liability") {
+                liabilities.push(el);
+            }
+            if(el.item.side == "asset") {
+                assets.push(el);
+            }
+            nw += parseFloat(el.item.change);
+        });
+
+        nw = nw.toFixed(2);
+        
+        updateNetWorth(nw);
+    }
+
   
-    const cancelAdd = () => {
+    const cancelAsset = () => {
         toggleAssetModal(false);
     };
+    const cancelLiability = () => {
+        toggleLiabilityModal(false);
+    };
   
-    const addItemHandle = (passedItem, isAdd) => {
+    const modAssetHandle = (passedType, passedVal, isAdd) => {
         // if isAdd == false, then attach a negative value
 
-      var db = firebase.database();
-
-      if(isAdd === true) {
-        db.ref('/todolist').push({
-          value: passedItem,
-        }); // pushing this object to the database
-      } else if (isAdd === false) {
-          passedItem = -Math.abs(passedItem);
-          db.ref('/todolist').push({
-            value: passedItem,
-          }); 
+      if (isAdd === false) {
+        passedVal = -Math.abs(parseFloat(passedVal));
       }
+
+      db.ref('/todolist').push({
+        side: 'asset',
+        class: passedType,
+        change: passedVal,
+        date: new Date().toDateString(),
+      }); // pushing this object to the database
   
   
       toggleAssetModal(false);
     }
+
+    // TODO: Combine top and bottom function -- pass the data thru the modal or find some other conditional variable or whateveaaaa
+    const modLiabilityHandle = (passedType, passedVal, isAdd) => {
+      if (isAdd === true) {
+        passedVal = -Math.abs(parseFloat(passedVal));
+      }
+
+      db.ref('/todolist').push({
+        side: 'liability',
+        class: passedType,
+        change: parseFloat(passedVal),
+        date: new Date().toDateString(),
+      }); 
+  
+      toggleLiabilityModal(false);
+    }
+
   
     const removeItemHandle = (id) => {
   
       var db = firebase.database(); 
       db.ref('todolist/' + id).remove();
-  
-      // updateList((list) => {
-      //   return list.filter((item) => item.id !== id)
-      // })
     }
   
     /*
@@ -77,33 +119,35 @@ const Main = () => {
 
 
     const onSwipeUp = () => {
-        console.log("swiped up");
+        if(!assetModal && !balanceChangesModal) {
+            toggleBalanceChangesModal(true);
+        }
     }
     
     const onSwipeDown = () => {
-        console.log("swiped down");
+        if(balanceChangesModal) {
+            toggleBalanceChangesModal(false);
+        }
     }
     
     const onSwipeLeft = () => {
-        console.log("swiped left");
+        if(liabilityModal) {
+            toggleLiabilityModal(false);
+        }
 
-        // close other modals
-
-        // open modal
-        if(!assetModal) {
+        if(!liabilityModal && !balanceChangesModal) {
             toggleAssetModal(true);
         }
     }
     
     const onSwipeRight = () => {
-        console.log("swiped right");
-
-        // close other modals
         if(assetModal) {
             toggleAssetModal(false);
         }
 
-        // open other modal
+        if(!assetModal && !balanceChangesModal) {
+            toggleLiabilityModal(true);
+        }
     }
     
     const config = {
@@ -152,27 +196,11 @@ const Main = () => {
                     </Text>
                 </View>
         
-                <AssetInput visibility={assetModal} closeModal={cancelAdd} onAdd={addItemHandle} />
+                <AssetInput visibility={assetModal} closeModal={cancelAsset} onModify={modAssetHandle} />
+                <LiabilityInput visibility={liabilityModal} closeModal={cancelLiability} onModify={modLiabilityHandle} />
         
-                <View style={{
-                    
-                }}>
-                {
-                    // list.map((item, i) => <Text key={i}>{item}</Text>)
-                }
-                <FlatList
-                    keyExtractor={(item, index) => item.id}
-                    data={list}
-                    renderItem={(itemData)=>(
-                    <TodoItem 
-                        id={itemData.item.key} 
-                        title={itemData.item.item.value} 
-                        onDelete={removeItemHandle} 
-                        updateList={updateList}
-                        />
-                    )}
-                    ></FlatList>
-                </View>
+                <BalanceChanges visibility={balanceChangesModal} data={response} onDelete={removeItemHandle} updateList={updateResponse} />
+                
                 <StatusBar style="auto" />
             </View>
         </GestureRecognizer>

@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Worth",
-    "slug": "Worth",
+    "name": "Net Worth Tracker",
+    "slug": "net-worth-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon2.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -21,6 +21,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "android": {
+      "package": "com.jaewu.networthtracker"
     }
   }
 }
